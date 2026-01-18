@@ -1,0 +1,3 @@
+POSTGRES_URL = "postgresql+psycorg2://username:password@server:port/name_db"
+# Замінити змінні на власні данні:
+# username,password,server,port,name_db 
