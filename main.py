@@ -1,14 +1,14 @@
 import pandas as pd
 from db_sql import init_db, get_engine
 from viz import plot_analytics
-# Імпортуємо логічні блоки обробки даних із нашого модуля утиліт
+# Імпортуємо логічні блоки обробки даних із  модуля утиліт
 from utils import (
     clean_data, 
     agg_sales_monthly, 
     calculate_monthly_roi, 
     roi_quality_notes, 
     extra_presentation_tables,
-    build_top3_customers  # Додали функцію для аналізу VIP-клієнтів
+    build_top3_customers  
 )
 
 def main():
@@ -44,20 +44,27 @@ def main():
     df_roi = calculate_monthly_roi(final_merged_df)
     df_roi.to_csv('monthly_roi.csv', index=False)
 
-    # --- ЕТАП 4: ПОГЛИБЛЕНИЙ АНАЛІЗ ТА ЗВІТНІСТЬ ---
-    # Перевіряємо якість вхідних даних (фіксуємо виправлені аномалії для звіту)
+# --- ЕТАП 4: ПОГЛИБЛЕНИЙ АНАЛІЗ ТА ГЕНЕРАЦІЯ ЗВІТІВ ---
+    
+    # 4.1. Аудит якості даних
+    # Функція аналізує df_marketing_clean і повертає список виявлених правок
     notes = roi_quality_notes(df_marketing_clean)
-    print("\n--- НОТАТКИ ЩОДО ЯКОСТІ ДАНИХ (Data Quality Log) ---", *notes, sep="\n- ")
+    print("\n--- ЖУРНАЛ ЯКОСТІ ДАНИХ (Data Quality Audit) ---")
+    for note in notes:
+        print(f"• {note}")
 
-    # Готуємо детальну таблицю з розподілом витрат по кожному маркетинговому каналу
+    # 4.2. Формування детального звіту по каналах
+    # Створюємо розгорнуту таблицю, де витрати розбиті окремо (Facebook, YouTube тощо)
     detailed_data = extra_presentation_tables(final_merged_df, df_marketing_clean)
     detailed_data["overview"].to_csv('detailed_report.csv', index=False)
+    print("\n[OK] Детальний звіт по каналах збережено у 'detailed_report.csv'")
 
-    # Аналізуємо клієнтську базу: визначаємо Топ-3 найприбутковіших клієнтів
+    # 4.3. Аналіз лояльності (VIP-клієнти)
+    # Знаходимо Топ-3 покупців за загальною сумою замовлень
     top_customers = build_top3_customers(df_orders)
     top_customers.to_csv('top_customers.csv', index=False, encoding='utf-8-sig')
-    print("\n--- ТОП-3 VIP КЛІЄНТИ ---")
-    print(top_customers)
+    print("\n--- ТОП-3 VIP КЛІЄНТИ (за виторгом) ---")
+    print(top_customers.to_string(index=False)) # to_string прибере зайві індекси при виводі
 
     # --- ЕТАП 5: ВІЗУАЛІЗАЦІЯ (Data Presentation) ---
     # Виводимо підсумкову таблицю в консоль та будуємо графік динаміки

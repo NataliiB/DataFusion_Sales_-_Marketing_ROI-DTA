@@ -23,7 +23,7 @@ def clean_data(df_raw: pd.DataFrame) -> pd.DataFrame:
         df['spend_amount'] = df['spend_amount'].astype(str).str.replace(',', '.')
     df['spend_amount'] = pd.to_numeric(df['spend_amount'], errors='coerce')
     
-    # ОБРОБКА АНОМАЛІЙ (як у вчительки)
+    # ОБРОБКА АНОМАЛІЙ
     # Замінюємо від'ємні значення на NaN
     df.loc[df['spend_amount'] < 0, 'spend_amount'] = np.nan
     
@@ -53,10 +53,19 @@ def calculate_monthly_roi(sales_marketing: pd.DataFrame) -> pd.DataFrame:
     return df[['month', 'total_sales', 'total_spend', 'roi']]
 
 def roi_quality_notes(marketing_clean: pd.DataFrame):
-    """Нотатки про якість даних"""
+    """
+    Функція-аудитор: перевіряє стан даних після очищення та 
+    готує текстові примітки для фінального звіту.
+    """
+    # Рахуємо реальну кількість NaN, які з'явилися після чистки мінусів
+    anomalies_count = marketing_clean['spend_amount'].isna().sum()
+    
+    # Визначаємо список унікальних каналів для звіту
+    channels_list = ", ".join(marketing_clean['channel_std'].unique())
+    
     notes = [
-        "Виявлено від’ємні витрати для Google Ads; виправлено на NaN для коректного ROI.",
-        "Стандартизацію назв каналів виконано (YouTube/Google Ads)."
+        f"Виявлено та нейтралізовано аномалій (від'ємні витрати): {anomalies_count} шт.",
+        f"Виконано стандартизацію каналів: {channels_list}."
     ]
     return notes
 
@@ -65,7 +74,7 @@ def extra_presentation_tables(sales_marketing: pd.DataFrame, marketing_clean: pd
     channel_pivot = (marketing_clean
                      .pivot_table(index="month", columns="channel_std", values="spend_amount", aggfunc="sum")
                      .reset_index())
-    # Merge за допомогою sales_marketing (там вже є загальні суми)
+    # Merge за допомогою sales_marketing 
     overview = sales_marketing.merge(channel_pivot, on="month", how="left")
     return {"overview": overview}
 def build_top3_customers(orders_df: pd.DataFrame) -> pd.DataFrame:

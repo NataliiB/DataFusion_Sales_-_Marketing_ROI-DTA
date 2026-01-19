@@ -13,7 +13,7 @@ def get_engine(db_name="orders"):
     return create_engine(url)
 
 def init_db(sql_file_path):
-    # 1. Спробуємо підключитися до системної бази 'postgres', щоб створити нашу базу
+    # 1. Підключаємося до системної бази 'postgres', щоб створити базу
     sys_engine = get_engine("postgres")
     
     try:
@@ -40,7 +40,7 @@ def init_db(sql_file_path):
         with open(full_path, 'rb') as f:
             raw_data = f.read()
         
-        # Використовуємо ваш перевірений метод з pg8000 та ігноруванням помилок декодування
+        # Використовуємо метод з pg8000
         sql_script = raw_data.decode('utf-8', errors='ignore')
         if "CREATE" not in sql_script.upper():
             sql_script = raw_data.decode('cp1251', errors='ignore')
